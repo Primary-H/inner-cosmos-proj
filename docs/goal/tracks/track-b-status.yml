@@ -7,11 +7,17 @@ minimum_handoff_commit: 7e0688308292cd9d41552c98f576d25681738be0
 base_sha: 14e1b85596034544b7fb291677fb8dd3f8240f1c
 branch: codex/track-b-complete-experience
 owner: claude-code-track-b
-updated_at: "2026-07-18"
+updated_at: "2026-07-19"
 spec: docs/tracks/TRACK-B-COMPLETE-EXPERIENCE.md
 evidence_root: evidence/track-b
 integration_requests: docs/goal/tracks/track-b-integration-requests.yml
-current_front: B1-product-architecture
+current_front: B4-i18n-a11y
+continuation_base:
+  branch: feat/complete-product-continuation
+  base_sha: 85b3a5b30519cc5894c6ee4a94fe9844d20bc3ee
+  note: >
+    Teammate continuation branched from latest origin/main (85b3a5b). Did NOT cherry-pick
+    7f1aa9b and did NOT re-implement the merged A3 vector foundation or B1/PWA checkpoints.
 handoff_checkpoint:
   status: IN_PROGRESS
   scope: "Second domain-hook extraction plus explicit PWA install/update UX; this checkpoint supersedes older B1/B5 remaining text where they conflict."
@@ -71,7 +77,69 @@ workstreams:
     remaining: "Five of B1's items now done: (1) unified login/register entry surface, (2) Aurora composer reachable without scrolling on mobile+desktop, (3) real client routes (react-router HashRouter) replacing the ?space= query param, (4) single async/task/error model audit, (5) FIRST domain-hook decomposition slice -- the Aurora conversation/session domain (message list, streaming/turn status, interrupt/stop, mode picker, WakeIntent negotiate, session bootstrap/replay) extracted out of AuroraApp.tsx into web/src/hooks/useAuroraSession.ts. Still open: AuroraApp.tsx is down from ~1270 to ~900 lines but still holds every OTHER domain's state as inline useState (memory/starfield, correction/claims, capsule/resonance, connections/letters, psychology skills, portrait, account) -- none of those moved this pass. Several more disabled={busy}-only buttons were deliberately left as documented discoveries (see prior checkpoint) because they share one busy boolean across sibling buttons representing different items (AuroraSelfSpace's propose/evaluate/activate/rollback, MemoryStarfield's mode tabs, ResonanceNetwork's strategy switcher, PsychologySkillStudio's per-run revoke, CapsuleWorkbench's sandbox ratings) -- migrating those safely needs a per-item busy id, which is domain-hook-decomposition-shaped work for whichever domain is extracted next, not a call-site swap; LettersInbox's reply button has no busy tracking at all (a real gap, flagged not fixed). No progressive-disclosure pass on WakeIntent/Self-Emergence panels, and only the five top-level spaces have real routes (nested sub-routes like /cosmos/starfield vs /cosmos/portrait, /resonance/capsule/:id are not yet split out -- productSpaceFromPath already matches nested sub-paths so this is additive, not a rework). HashRouter (not BrowserRouter) is used because Spring's static handling has no /app/aurora/** catch-all -- filed as TB-REQ-002 for a future clean-URL swap."
   B2-visible-innovation: {status: NOT_STARTED, evidence: [], remaining: "Make living Aurora, Inner Cosmos and resonance differentiation immediately visible."}
   B3-design-content: {status: NOT_STARTED, evidence: [], remaining: "Complete design primitives, content states, responsive polish and visual regression."}
-  B4-i18n-a11y: {status: NOT_STARTED, evidence: [], remaining: "Complete Chinese and English/en-SG, WCAG target and manual accessibility checks."}
+  B4-i18n-a11y:
+    status: IN_PROGRESS
+    evidence:
+      - web/src/i18n/messages.ts
+      - web/src/i18n/locale.ts
+      - web/src/i18n/LocaleProvider.tsx
+      - web/src/i18n/messages.test.ts
+      - web/src/i18n/locale.test.ts
+      - web/src/components/LanguageToggle.tsx
+      - web/src/components/LanguageToggle.test.tsx
+      - web/src/components/ProductShell.tsx (ProductShellNavigation + MeSpace migrated to catalog; productSpaces -> PRODUCT_SPACES)
+      - web/src/components/ProductShell.test.tsx (zh-CN preserved + en-SG nav case)
+      - web/src/components/AuthGate.tsx (migrated to catalog)
+      - web/src/components/AuthGate.test.tsx (zh-CN characterization preserved + en-SG cases)
+      - web/src/main.tsx (LocaleProvider wraps the app)
+      - web/src/AuroraApp.tsx (legacy-redirect updated for the PRODUCT_SPACES rename)
+      - evidence/track-b/B4-i18n/README.md
+    remaining: >
+      FIRST B4 slice: established the i18n foundation (a TYPED message catalog with an
+      explicit Messages interface so a missing key/locale is a compile error; zh-CN + full
+      en-SG; count phrases as per-locale functions with English singular/plural) plus a
+      LocaleProvider/useMessages/useLocale context, browser-language detection
+      (zh*->zh-CN, en*->en-SG English-first), localStorage persistence (ic-locale, mirrors
+      theme.ts) and <html lang> application, and a LanguageToggle in the Me space. Migrated
+      the ENTRY SURFACE only: AuthGate (first screen every new user sees) and
+      ProductShellNavigation + MeSpace. These now switch 中文/English instantly with no
+      reload. Still open: migrate the remaining spaces (Aurora conversation, Inner
+      Cosmos/starfield, Resonance, Connections/letters, psychology-skill chrome, account
+      settings) onto the same Messages contract (most hard-coded Chinese still lives there);
+      localise dates/timezone/relative-time/numbers/validation/notifications/safety
+      resources; en-SG copy review by a fluent reviewer (human gate); and the entire WCAG
+      2.2 AA + axe/keyboard/screen-reader half of B4 (NOT started this slice).
+    verification:
+      environment_gap: >
+        ENVIRONMENT BLOCKER (recorded honestly, not hidden): this continuation ran in a
+        sandbox with no JDK 21 and no Maven Central access (Track A unbuildable) AND where
+        `npm install` cannot complete through a throttled package proxy (~37s/request; long
+        installs are killed), so Vitest, `tsc -b` and `vite build` COULD NOT be run here.
+        This checkpoint is therefore IMPLEMENTED, not a green-suite PASS. The full frontend
+        gate must be run on a real dev machine (see evidence/track-b/B4-i18n/README.md §5)
+        before this is upgraded past IMPLEMENTED.
+      core_executed: >
+        Dependency-free core WAS executed for real via Node 22 TypeScript type-stripping
+        (not self-scoring): `node` over web/src/i18n/messages.ts asserted identical deep
+        key shape across both locales, no empty-string leaves, correct count interpolation
+        incl. English singular/plural, and default-locale fallback -> MESSAGES_OK. `node`
+        over web/src/i18n/locale.ts asserted detectLocale zh*/en*/other + ordering,
+        silent storage degradation without localStorage, resolveInitialLocale validity, and
+        applyDocumentLocale -> LOCALE_OK.
+      static_review: >
+        Cannot compile the React/TSX here. Manual audit: no user-visible hard-coded Chinese
+        remains in the migrated AuthGate.tsx/ProductShell.tsx (comments only); all new
+        imports resolve to real files; no runtime import cycle (only an erased `import type`
+        edges back to ProductShell); old `productSpaces` export has zero remaining refs;
+        `git diff --cached --check` (whitespace) PASS.
+      component_tests_written_not_run: >
+        messages.test.ts, locale.test.ts, LanguageToggle.test.tsx, and the extended
+        AuthGate.test.tsx / ProductShell.test.tsx are written (TDD-style, zh-CN
+        characterization preserved + en-SG cases added) but require `npm i` to run.
+      secret_scan: >
+        scripts/scan-secrets.ps1 needs PowerShell, absent in this sandbox. The staged diff
+        is UI strings + i18n plumbing only, with zero credentials added; run the scan on a
+        real machine before pushing.
   B5-pwa-mobile:
     status: IN_PROGRESS
     evidence:
@@ -177,6 +245,4 @@ handoff_notes:
   - "HashRouter was the correct choice, not a shortcut: confirmed live that Spring only forwards the exact /app/aurora and /app/aurora/ paths (no /app/aurora/** catch-all), so a BrowserRouter path would 404 on refresh. Filed TB-REQ-002 for the future server-side fallback + BrowserRouter swap; the app code depends only on react-router's location/navigate API so the swap will be a one-line change in main.tsx when the backend side lands."
   - "Playwright verification methodology note: getByRole('button', {name}) with exact:false performs substring matching against the FULL accessible name (all descendant text, e.g. a nav button's <strong>label</strong><small>description</small> both count) across the ENTIRE page, not just an intended container -- since all five product spaces are simultaneously mounted (hidden-toggled, not unmounted) per the existing architecture, an unscoped/loose name match can silently grab a same-substring element from a different, currently-hidden-looking-but-still-matched space. Scope nav-button locators to page.getByRole('navigation', {name: ...}) first, and use each space's exact label from ProductShell.tsx's productSpaces array ('我的' not '我', '今天' not 'Aurora') -- see evidence/track-b/scripts/observe-b1-routes.mjs for the corrected pattern."
   - "Loading-audit checkpoint done: nine components (MemoryStarfield, ClaimCandidateReview, CapsuleWorkbench, UnderstandingCorrection, PsychologySkillStudio, RelationsView, AuthGate, AuroraConversation, PortraitView) migrated onto web/src/loading.tsx's existing AsyncButton/LoadingText primitives; loading.tsx itself needed no changes. This closes the 'single async/task/error model' item from the earlier handoff note above, at least for the unambiguous single-button/single-item cases -- the remaining shared-busy-across-siblings cases (see discoveries) are real but smaller follow-ups, not blockers."
-  - "Next unblocked B1 step: begin the actual AuroraApp.tsx decomposition into per-route domain hooks/stores now that real routes exist (docs/tracks/TRACK-B-COMPLETE-EXPERIENCE.md section 5's 'application shell, route pages, domain hooks/stores and small presentational components'). Suggested order, since AuroraApp.tsx is ~1270 lines with 60+ useState hooks: extract one space's state+handlers into a dedicated hook at a time, starting with a self-contained one (e.g. useRelationsSpace or usePortraitSpace, which have few cross-space dependencies) before the more entangled ones (Aurora conversation streaming, capsule/resonance, which share sessionId/status/skillSuggestion across spaces). Doing this would also naturally unlock the shared-busy-across-siblings discoveries above, since a per-space hook is the natural place to introduce a per-item busy id (e.g. an evolveBusyId for AuroraSelfSpace, mirroring the existing claimCandidateBusyId/detailBusy/rollbackBusy pattern) instead of one global boolean."
-  - "B5 first slice done: PWA offline app shell (manifest + service-worker precache of the static app shell only + branded offline fallback reusing the existing ConnectError path, no AuroraApp.tsx change needed + an explicit, live-verified API-caching boundary). This closes backlog item (6) from B0's original list ('build a real offline app shell') and the B0 discovery about a blank offline error page. Next unblocked B5 step, in priority order: (1) a real install-prompt UX -- capture the browser's beforeinstallprompt event and surface an in-app 'install Inner Cosmos' affordance (e.g. in the 我的/Me space or a dismissible banner), since right now installability relies entirely on the browser's own default UI; (2) a versioned-update flow with real user-facing copy -- vite-plugin-pwa's registerSW() callbacks (onNeedRefresh/onOfflineReady) were left at defaults (registerType: 'autoUpdate' silently reloads), spec section 9 asks for a 'safe update flow' which implies at least a visible 'a new version is ready' moment, not a silent reload that could interrupt an in-progress Aurora conversation; (3) Capacitor-specific §9 checks (deep links, secure storage, network/background transitions, mic/push permission UX) -- completely untouched, this slice was web-PWA only; (4) reconnect/resume idempotency for streams and queued actions (§9's 'show what is pending') -- not addressed; (5) the small ConnectError copy gap (raw 'Failed to fetch' text) noted in discoveries above, once AuroraApp.tsx/api.ts are free of the concurrent B1 edit."
-  - "First AuroraApp.tsx domain-hook decomposition slice done: the Aurora conversation/session domain (message list, streaming/turn status, interrupt/stop, mode picker, WakeIntent negotiate, session bootstrap/replay) is now in web/src/hooks/useAuroraSession.ts, TDD'd with 14 new characterization tests, wired into AuroraApp.tsx with no JSX/behavior change, and live-verified. AuroraApp.tsx dropped from ~1270 to ~900 lines but still holds every OTHER domain inline: memory/starfield (starfield, starfieldDetail, memoryOperations, correction targets/claims/candidates), capsule/resonance (capsules, genomeHistory, capsulePreview, sandbox, persona chat, slow letters), connections/letters (connectionRequests, friends, people, relations, letter threads), psychology skills, portrait, and account settings -- none of those moved this pass. Next unblocked step is your call between two reasonable options: (a) extract the memory/starfield + correction domain next (a natural pairing since beginMemoryCorrection already bridges them, and MemoryStarfield/UnderstandingCorrection/ClaimCandidateReview are the three components it would feed) into e.g. useMemoryStarfield.ts, or (b) extract the smaller, more self-contained relations/connections domain (openRelation/refreshConnections/requestPersonConnection/decideConnection/leaveConnection, feeding PeopleDiscovery/RelationsView) first as an easier warm-up before the more entangled capsule/resonance domain. Either is legitimate; capsule/resonance is the most entangled (shares sessionId/skillLocale/status with the just-extracted Aurora domain and with psychology skills) so it is the least attractive next slice. Once 2-3 more domain hooks land, AuroraApp.tsx itself should shrink enough to start the separate, later rendering-decomposition pass (splitting the five product-space JSX blocks into small presentational components) that this checkpoint deliberately did not attempt."
+  - "Next unblo

@@ -4,7 +4,7 @@ import { Capacitor } from "@capacitor/core";
 import { api, apiConfigurationError, configureBearerAuth, hasConfiguredApiBase, transcribeAudio, type ClaimCandidate, type CapsuleBoundary, type CapsuleFidelitySummary, type CapsuleGenomeVersion, type CapsuleMatch, type CapsulePreview, type CapsuleQuota, type CapsuleSandbox, type CorrectionCommand, type CorrectionImpact, type EchoCapsule, type MemoryCard, type MemoryOperation, type PersonaMessage, type PersonaSession, type PortraitDimension, type PublicCapsule, type PortraitHistoryEntry, type PsychologyRetention, type PsychologySkillManifest, type PsychologySkillRun, type PsychologySkillSuggestion, type ResonanceStrategy, type SelfEvolution, type SlowLetter, type StarfieldDetail, type StarfieldScene, type StarfieldStar, type UnderstandingClaim, type UserCorrection } from "./api";
 import { initialMobileState, mobileRuntime, type MobileRuntimeState } from "./mobile";
 import { mobileOidc } from "./mobile-auth";
-import { MeSpace, productSpaceFromPath, productSpaces, ProductShellNavigation, spacePath, type ProductSpace } from "./components/ProductShell";
+import { MeSpace, productSpaceFromPath, PRODUCT_SPACES, ProductShellNavigation, spacePath, type ProductSpace } from "./components/ProductShell";
 import { AuroraConversation } from "./components/AuroraConversation";
 import { AuroraSelfSpace } from "./components/AuroraSelfSpace";
 import { UnderstandingCorrection, type CorrectionTarget } from "./components/UnderstandingCorrection";
@@ -137,7 +137,7 @@ export function AuroraApp() {
   useEffect(() => {
     if (window.location.hash) return;
     const legacySpace = new URLSearchParams(window.location.search).get("space");
-    if (legacySpace && productSpaces.some(([space]) => space === legacySpace)) {
+    if (legacySpace && PRODUCT_SPACES.includes(legacySpace as ProductSpace)) {
       navigate(spacePath(legacySpace as ProductSpace), { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -946,3 +946,4 @@ export function AuroraApp() {
     </main>
   );
 }
+ 

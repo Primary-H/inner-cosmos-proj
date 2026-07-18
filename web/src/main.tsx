@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { HashRouter } from "react-router-dom";
 import { AuroraApp } from "./AuroraApp";
+import { LocaleProvider } from "./i18n/LocaleProvider";
 import { InstallPrompt } from "./components/InstallPrompt";
 import { PwaUpdateNotice } from "./components/PwaUpdateNotice";
 import { startTimeOfDayTheme } from "./theme";
@@ -35,12 +36,8 @@ startStardust();
 // of overlapping at the same fixed viewport position.
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <HashRouter>
-      <AuroraApp />
-    </HashRouter>
-    <div className="pwa-banner-stack">
-      <InstallPrompt />
-      <PwaUpdateNotice />
-    </div>
-  </StrictMode>
-);
+    <LocaleProvider>
+      <HashRouter>
+        <AuroraApp />
+      </HashRouter>
+      <div className="pwa-banner-sta

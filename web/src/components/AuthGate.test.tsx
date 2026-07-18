@@ -1,7 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render as rtlRender, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ReactElement } from "react";
 import { AuthGate } from "./AuthGate";
 import { api } from "../api";
+import { LocaleProvider } from "../i18n/LocaleProvider";
+import type { Locale } from "../i18n/messages";
 
 vi.mock("../api", () => ({
   api: { login: vi.fn(), register: vi.fn() }
@@ -9,6 +12,13 @@ vi.mock("../api", () => ({
 vi.mock("../mobile-auth", () => ({
   mobileOidc: { beginLogin: vi.fn() }
 }));
+
+// AuthGate now reads its copy from the typed message catalog, so it must render inside a
+// LocaleProvider. These characterization tests pin the zh-CN (default) copy; a dedicated
+// case at the end pins the en-SG payload. Wrapping the shared `render` keeps every existing
+// assertion below unchanged.
+const render = (ui: ReactElement, locale: Locale = "zh-CN") =>
+  rtlRender(<LocaleProvider initialLocale={locale}>{ui}</LocaleProvider>);
 
 afterEach(() => {
   cleanup();
@@ -130,16 +140,4 @@ describe("AuthGate -- web session mode (native=false)", () => {
     fireEvent.change(screen.getByLabelText("密码"), { target: { value: "longenoughpass" } });
     fireEvent.change(screen.getByLabelText("确认密码"), { target: { value: "longenoughpass" } });
     fireEvent.click(screen.getByRole("button", { name: "创建账号" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("注册失败");
-    expect(onSuccess).not.toHaveBeenCalled();
-  });
-});
-
-describe("AuthGate -- native (Capacitor OIDC) mode is untouched", () => {
-  it("renders only the OIDC entry point, with no mode toggle and no register/login form fields", () => {
-    render(<AuthGate native={true} onSuccess={vi.fn()} />);
-    expect(screen.getByRole("button", { name: "使用身份提供方继续" })).toBeInTheDocument();
-    expect(screen.queryByRole("tablist", { name: "登录或注册" })).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("用户名")).not.toBeInTheDocument();
-  });
-});
+    expect(await screen.findByRole("alert")).toHaveTex

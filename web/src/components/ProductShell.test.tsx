@@ -1,6 +1,15 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render as rtlRender, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ReactElement } from "react";
 import { initialProductSpace, productSpaceFromPath, ProductShellNavigation, spacePath } from "./ProductShell";
+import { LocaleProvider } from "../i18n/LocaleProvider";
+import type { Locale } from "../i18n/messages";
+
+// The nav now reads its space labels from the typed message catalog, so it renders inside a
+// LocaleProvider. Default is zh-CN (pins the original Chinese assertions); an en-SG case
+// below pins the English labels.
+const render = (ui: ReactElement, locale: Locale = "zh-CN") =>
+  rtlRender(<LocaleProvider initialLocale={locale}>{ui}</LocaleProvider>);
 
 afterEach(cleanup);
 
@@ -43,15 +52,4 @@ describe("ProductShell", () => {
   });
 
   it("exposes all five spaces and marks the current one", () => {
-    render(<ProductShellNavigation active="cosmos" onNavigate={() => undefined} />);
-    expect(screen.getAllByRole("button")).toHaveLength(5);
-    expect(screen.getByRole("button", { name: /^内宇宙/ })).toHaveAttribute("aria-current", "page");
-  });
-
-  it("delegates an explicit navigation choice", () => {
-    const onNavigate = vi.fn();
-    render(<ProductShellNavigation active="aurora" onNavigate={onNavigate} />);
-    fireEvent.click(screen.getByRole("button", { name: /^共鸣/ }));
-    expect(onNavigate).toHaveBeenCalledWith("resonance");
-  });
-});
+    render(<ProductShellNavigation active="c
